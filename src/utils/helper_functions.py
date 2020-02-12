@@ -1,3 +1,7 @@
+# ------------------------------------------------------------------------------
+# Miscellaneous helper functions.
+# ------------------------------------------------------------------------------
+
 def f_optional_args(f, args, x):
     """If there are arguments, these are passed to the function."""
     if args:

@@ -1,6 +1,5 @@
 # Ignore the following directories:
-/obj/*
-/results/*
+/aver/*
 
 # VS code project setup
 /.vscode/*

@@ -1,3 +1,7 @@
+# ------------------------------------------------------------------------------
+# Introspection function to create object instances from string arguments.
+# ------------------------------------------------------------------------------
+
 def get_class(class_path):
     """Creates a class dynamically."""
     if isinstance(class_path, str):

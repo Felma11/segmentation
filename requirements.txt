@@ -1,3 +1,4 @@
+-e .
 pytest==5.3.5
 numpy==1.18.1
 scipy==1.4.1

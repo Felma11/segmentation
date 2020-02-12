@@ -1,3 +1,7 @@
+# ------------------------------------------------------------------------------
+# Functions to store and restore PyTorch objects.
+# ------------------------------------------------------------------------------
+
 import torch
 import os
 
@@ -18,7 +22,12 @@ def load_model_state(model, name, path):
     return False
 
 def save_optimizer_state(optimizer, name, path):
-    """Saves a pytorch optimizer state."""
+    """
+    Saves a pytorch optimizer state.
+
+    This makes sure that, for instance, if learning rate decay is used the same
+    state is restored which was left of at this point in time.
+    """
     full_path = os.path.join(path, name)
     torch.save(optimizer.state_dict(), full_path)
 
