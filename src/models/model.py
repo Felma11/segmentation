@@ -12,7 +12,7 @@ from cl.utils.load_restore import load_model_state, save_model_state
 class Model(nn.Module):
 
     def __init__(self, model_config):
-        super(ContinualModel, self).__init__()
+        super(Model, self).__init__()
         self.weights_file_name = model_config['weights_file_name']
         self.out_dim = model_config['out_dim']
         self.in_channels = model_config['in_channels']
