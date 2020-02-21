@@ -52,6 +52,7 @@ if __name__ == '__main__':
                 args = args_standard(config)
                 print(args)
                 notes = ''
+                splits = 
                 experiment = Experiment(args, notes=notes)
                 try:
                     set_gpu(args.gpu)

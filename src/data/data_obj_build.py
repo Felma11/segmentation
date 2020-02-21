@@ -1,20 +1,6 @@
 # ------------------------------------------------------------------------------
-# This module contains methods to build individual datasets.
+# This module contains methods to build datasets.
 # ------------------------------------------------------------------------------
-
-
-
-
-Each experiment may have different splits for training and validation. However,
-the indexes which make up the test split are set at the beginning of working 
-with a dataset. Cross-validation can be performed with all data by creating a 
-new Dataset with an empty test set.
-
-
-Some datasets include a predefined test split. In this case, this split is always considered.
-
-
-
 
 import os
 import random
@@ -31,19 +17,21 @@ def save_dataset(ds, dataset_name):
     path = os.path.join('storage', 'datasets')
     pkl_dump(ds, path=path, name=dataset_name)
 
-def mnist(name = 'MNIST', 
+def mnist(root_path,
+    name = 'MNIST', 
     file_type = 'png', 
     img_shape = (32, 32),
     nr_channels = 1,
-    root_path = 'C:\\Users\\cgonzale\\Documents\\data\\mnist_png',
     restore = True,
     val_ratio = 0.0,
     stratesfied = True):
-    name = name + '_' + str(val_ratio) + '_' + str(stratesfied)
     if restore:
         ds = restore_if_possible(name)
         if ds:
             return ds
+
+
+            
     classes = ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9')
     directory_splits = ['train', 'test']
     instances = {'train':[], 'val':[], 'test':[]}
@@ -72,4 +60,4 @@ def mnist(name = 'MNIST',
     Instance(x_path, y=None)
 
 
-    Dataset(name=name, file_type=file_type, img_shape=img_shape, nr_channels=nr_channels, classes=classes, instances = [])
+    Dataset(name=name, file_type=file_type, img_shape=img_shape, nr_channels=nr_channels, classes=classes, instances = [], test_ixs = [])
