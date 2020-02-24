@@ -29,14 +29,20 @@ def run(experiment, config):
 
     #TODO
 
+
+    # 1. create dataset
+
+    # If not loaded, create repetitions
+
+
+    # Define configuration. The configuration includes the number of repetitions
+    # or cross-validation folds. This starts an array of experiments, each for 
+    # one repetition\fold
+
     
     experiment.finish(results=results)
 
 if __name__ == '__main__':
-    # Set random seeds
-    #torch.manual_seed(50)
-    #torch.backends.cudnn.deterministic = True
-    #torch.backends.cudnn.benchmark = False
     bot = TelegramBot()
     if not ON_JUPYTER:
         if len(sys.argv[1:]) > 0:
