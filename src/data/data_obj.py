@@ -109,8 +109,9 @@ class Dataset:
         """
         random.shuffle(exs)
         nr_per_fold, remaining = divmod(len(exs), k)
-        print('nr_per_fold '+str(nr_per_fold))
-        print('remaining '+str(remaining))
+        #print(nr_per_fold)
+        if nr_per_fold < 1:
+            raise RuntimeError('Not enough examples.')
         folds = []
         ix = 0
         for _ in range(k):
@@ -121,16 +122,6 @@ class Dataset:
             ix =+ ix+nr_exs
             remaining -= 1
         return folds
-
-
-
-        '''
-        nr_per_fold = len(exs) / k
-        if nr_per_fold < 1:
-            raise RuntimeError('Not enough examples.')
-        nr_per_fold = mail.floor(nr_per_fold)
-        remaining = len(exs) % k
-        '''
 
     def create_instance_folds(self, k=5, exclude_ixs=[], stratisfied=False):
         """
@@ -160,7 +151,7 @@ class Dataset:
                 print(divided_exs)
                 for i in range(len(divided_exs)):
                     folds[i] += divided_exs[i]
-        assert sum([len(fold) for fold in folds])+exclude_ixs == len(self.instances)
+        assert sum([len(fold) for fold in folds])+len(exclude_ixs) == len(self.instances)
         return folds
 
 def test_split_instances():
@@ -209,10 +200,29 @@ def test_cross_validation():
     instances.append(Instance('0D', y='0'))
     instances.append(Instance('0E', y='0'))
     ds = Dataset(name=None, img_shape=None, instances=instances)
+    # Split into 2 folds
+    folds = ds.create_instance_folds(k=2, exclude_ixs=[3], stratisfied=True)
+    for fold in folds:
+        assert len(fold) < 5
+        class_dictribution = ds._get_class_distribution(fold)
+        print(class_dictribution)
+        assert class_dictribution['1']==1 or class_dictribution['1']==2
+        assert class_dictribution['0']==2
     # Split into 3 folds
     folds = ds.create_instance_folds(k=3, exclude_ixs=[3], stratisfied=True)
-    print(folds)
-
+    for fold in folds:
+        assert len(fold) < 4
+        class_dictribution = ds._get_class_distribution(fold)
+        assert class_dictribution['1']==1 
+        assert class_dictribution['0']==1 or class_dictribution['0']==2
+    # Split into 4 folds
+    folds = ds.create_instance_folds(k=4, exclude_ixs=[3], stratisfied=True)
+    
+    try:
+        ixs_1, ixs_2 = ds.split_instances(0.9, exclude_ixs=[3], stratisfied=True)
+        assert False
+    except RuntimeError:
+        pass
 
 
 test_cross_validation()
