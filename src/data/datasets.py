@@ -8,6 +8,8 @@ import sys
  
 from src.data.dataset_obj import Dataset, Instance
 from src.utils.load_restore import pkl_dump, pkl_load
+from src.paths import data_paths
+from src.utils.introspection import get_class
 
 def restore_if_possible(dataset_name):
     path = os.path.join('storage', 'datasets')
@@ -17,18 +19,26 @@ def save_dataset(ds, dataset_name):
     path = os.path.join('storage', 'datasets')
     pkl_dump(ds, path=path, name=dataset_name)
 
-def mnist(root_path,
-    name = 'MNIST', 
-    file_type = 'png', 
-    img_shape = (32, 32),
-    nr_channels = 1,
-    restore = True,
-    val_ratio = 0.0,
-    stratesfied = True):
+def get_dataset(config):
+    name = config['dataset_name']
+    restore=config.get('restore_dataset', True)
     if restore:
         ds = restore_if_possible(name)
         if ds:
+            print('Restoring existing dataset')
             return ds
+    root_path = data_paths[name]
+    ds = get_class('src.data.datasets.'+name)(
+        root_path=root_path,
+        name=config['dataset_name'])
+    save_dataset(ds, dataset_name=name)
+    return ds
+
+def mnist(root_path,
+    name = 'mnist', 
+    file_type = 'png', 
+    img_shape = (32, 32),
+    nr_channels = 1):
     # The root includs directories 'train' and 'test'
     instances = []
     hold_out_test_start = 0

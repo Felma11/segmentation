@@ -2,6 +2,7 @@
 
 Install requirements with: pip install -r requirements.txt
 Execute tests from the root directory with 'pytest'
+Install PyTorch over conda (get command from https://pytorch.org/)
 
 src: contains all the code
     agents: define the training and evaluation of models
@@ -14,3 +15,4 @@ src: contains all the code
     utils: helper functions
         arguments: definition of arguments and passing to dictionary
         experiment: deifnition of experiment for repeated runs
+

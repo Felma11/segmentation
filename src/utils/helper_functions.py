@@ -31,3 +31,7 @@ def divide_path_fname(path):
         file_name = ntpath.basename(path_to_file)
         path_to_file = path_to_file.split(file_name)[0]
     return path_to_file, file_name
+
+def set_gpu(gpu_nr):
+    os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+    os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu_nr)

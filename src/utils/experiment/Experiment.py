@@ -14,11 +14,12 @@ import shutil
 
 from src.utils.helper_functions import get_time_string
 from src.utils.load_restore import join_path, pkl_dump, pkl_load, save_json, load_json
+from src.data.data_splitting import split_dataset
 from src.utils.introspection import get_class
 
 class Experiment:
     """A bundle of experiments runs with the same configuration. 
-    :param config: A dictionary contains at least the following keys:
+    :param config: A dictionary contains a.o. the following keys:
     - cross_validation: are the repetitions cross-validation folds?
     - nr_runs: number of repetitions/cross-validation folds
     """
@@ -40,22 +41,25 @@ class Experiment:
             os.makedirs(self.path)
             # Save 'config.json' file
             save_json(self.config, path=self.path, name='config')
+            # Initialize splits
+            self.splits = [None for i in range(self.nr_repetitions)]
         self.notes = self.config.get('experiment_notes', '')
-        self.cross_validation = self.config['cross_validation']
-        self.nr_repetitions = self.config['nr_runs']
-        self.splits = [None for i in range(self.nr_repetitions)]
+        self.cross_validation = self.config.get('cross_validation', False)
+        self.nr_repetitions = self.config.get('nr_runs', 1)
 
     def define_runs_splits(self, dataset):
         """Select which indexes make out the train, val and test sets for each 
         repitition."""
-
-        self.splits = None #TODO
-
-        save_json(self.splits, path=self.path, name='splits')
+        self.splits = split_dataset(dataset, 
+            test_ratio=self.config.get('test_ratio', 0.2), 
+            val_ratio=self.config.get('val_ratio', 0.2), 
+            nr_repetitions=self.nr_repetitions, 
+            cross_validation=self.cross_validation)
+        save_json(self.splits, path=self.path, name='splits')     
 
     def get_experiment_run(self, idx_k=0, notes=''):
-        print(idx_k)
-        class_path = self.config.get('experiment_class_path', 'src.utils.experiment.Experiment.ExperimentRun')
+        assert self.splits[idx_k] is not None
+        class_path = self.config.get('experiment_run_class_path', 'src.utils.experiment.Experiment.ExperimentRun')
         return get_class(class_path)(root=self.path, dataset_ixs=self.splits[idx_k], name=str(idx_k), notes=self.notes+notes)     
             
 class ExperimentRun:
@@ -68,6 +72,7 @@ class ExperimentRun:
     :param notes: additional notes, to save in 'review' file
     """
     def __init__(self, root, dataset_ixs, name='', notes=None):
+        # TODO: what happens if it already exists? -> create new one with datestring
         self.name = name
         self.dataset_ixs = dataset_ixs
         # Create directories and assign to field
@@ -84,6 +89,9 @@ class ExperimentRun:
         # Create root path inside the Experiment path
         paths = dict()
         paths['root'] = join_path([root, self.name])
+        if os.path.isdir(paths['root']):
+            self.name += '_'+get_time_string()
+            paths['root'] = join_path([root, self.name])
         os.makedirs(paths['root'])
         # Creates subdirectories for:
         # - agent_states: for model and optimizer state dictionaries

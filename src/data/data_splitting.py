@@ -24,7 +24,7 @@ def split_dataset(dataset, test_ratio=0.2, val_ratio=0.2, nr_repetitions=5, cros
         folds = create_instance_folds(dataset=dataset, k=nr_repetitions, 
             exclude_ixs=dataset.hold_out_test_ixs, stratisfied=True)
         for k in range(nr_repetitions):
-            print('k {} of {}'.format(k, nr_repetitions))
+            print('k {} of {}'.format(k+1, nr_repetitions))
             train, val = split_instances(dataset=dataset, ratio=1-val_ratio, 
                 exclude_ixs=dataset.hold_out_test_ixs+folds[k],     
                 stratisfied=True)
