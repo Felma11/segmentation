@@ -1,4 +1,4 @@
-# Ignore the following directories:
+# Ignore the following directories and files:
 /storage/*
 
 # VS code project setup
@@ -108,3 +108,4 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+src/utils/telegram_bot/telegram_login.json
