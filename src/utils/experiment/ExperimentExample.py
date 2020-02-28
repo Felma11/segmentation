@@ -3,7 +3,7 @@ from src.utils.experiment.Experiment import ExperimentRun
 class ExperimentRunExample(ExperimentRun):
     # TODO: place within 'test directory'
     
-    def __init__(self, root, dataset_ixs=None, name='', notes=''):
+    def __init__(self, root, dataset_ixs=None, name='', notes='', restore=False):
         super().__init__(root=root, dataset_ixs=dataset_ixs, name=name, notes=notes)
         self.summary_value = notes
 

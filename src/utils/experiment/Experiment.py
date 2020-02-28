@@ -42,11 +42,11 @@ class Experiment:
             # Save 'config.json' file
             save_json(self.config, path=self.path, name='config')
             # Initialize splits
+            self.nr_repetitions = self.config.get('nr_runs', 1)
             self.splits = [None for i in range(self.nr_repetitions)]
         self.notes = self.config.get('experiment_notes', '')
         self.cross_validation = self.config.get('cross_validation', False)
-        self.nr_repetitions = self.config.get('nr_runs', 1)
-
+        
     def define_runs_splits(self, dataset):
         """Select which indexes make out the train, val and test sets for each 
         repitition."""
@@ -58,9 +58,10 @@ class Experiment:
         save_json(self.splits, path=self.path, name='splits')     
 
     def get_experiment_run(self, idx_k=0, notes=''):
-        assert self.splits[idx_k] is not None
+        if self.splits[idx_k] is None:
+            print('Define splits first')
         class_path = self.config.get('experiment_run_class_path', 'src.utils.experiment.Experiment.ExperimentRun')
-        return get_class(class_path)(root=self.path, dataset_ixs=self.splits[idx_k], name=str(idx_k), notes=self.notes+notes)     
+        return get_class(class_path)(root=self.path, dataset_ixs=self.splits[idx_k], name=str(idx_k), notes=self.notes+notes, restore=self.config.get('restore_run', True))     
             
 class ExperimentRun:
     """Experiment runs within the same experiment differ only on the indexes 
@@ -71,12 +72,12 @@ class ExperimentRun:
     :param name: name of the experiment
     :param notes: additional notes, to save in 'review' file
     """
-    def __init__(self, root, dataset_ixs, name='', notes=None):
+    def __init__(self, root, dataset_ixs, name='', notes=None, restore=True):
         # TODO: what happens if it already exists? -> create new one with datestring
         self.name = name
         self.dataset_ixs = dataset_ixs
         # Create directories and assign to field
-        self.paths = self._build_paths(root)
+        self.paths = self._build_paths(root, restore)
         # Set initial time
         self.time_start = time.time()
         # 'review.json' file
@@ -85,14 +86,17 @@ class ExperimentRun:
         if notes:
             self.review['notes'] = notes
 
-    def _build_paths(self, root):
+    def _build_paths(self, root, restore):
         # Create root path inside the Experiment path
         paths = dict()
         paths['root'] = join_path([root, self.name])
         if os.path.isdir(paths['root']):
-            self.name += '_'+get_time_string()
-            paths['root'] = join_path([root, self.name])
-        os.makedirs(paths['root'])
+            if not restore:
+                self.name += '_'+get_time_string()
+                paths['root'] = join_path([root, self.name])
+                os.makedirs(paths['root'])
+        else:
+            os.makedirs(paths['root'])
         # Creates subdirectories for:
         # - agent_states: for model and optimizer state dictionaries
         # - results: for results files and visualizations
@@ -102,7 +106,8 @@ class ExperimentRun:
         # and validation sets should be stored in the experiment's 'obj'.
         for subpath in ['agent_states', 'obj', 'results', 'tmp']:
             paths[subpath] = os.path.join(paths['root'], subpath)
-            os.mkdir(paths[subpath])
+            if not os.path.isdir(paths[subpath]):
+                os.mkdir(paths[subpath])
         return paths
 
     def update_review(self, dictionary):
@@ -113,6 +118,12 @@ class ExperimentRun:
     def write_summary_measures(self, results):
         """Template method. write selected measures into the review."""
         pass
+
+    def save_obj(self, obj, name):
+        pkl_dump(obj, name, path=self.paths['obj'])
+
+    def get_obj(self, name):
+        return pkl_load(name, path=self.paths['obj'])
 
     def finish(self, results = None, exception = None):
         elapsed_time = time.time() - self.time_start

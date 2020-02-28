@@ -11,11 +11,12 @@ class Instance:
     An instance containing a path to x, a class value y and the path to a 
     segmentation mask.
     """
-    def __init__(self, x_path, y=None, seg_path=None):
-        assert (y is not None) or (seg_path is not None)
+    def __init__(self, x_path, y=None, mask=None):
+        assert (y is not None) or (mask is not None)
         self.x_path = x_path
-        self.seg_path = seg_path
+        self.mask = mask
         self.y = y
+        self.group_id = None
 
 class Dataset:
     """A Dataset, which contains a list of instances."""
