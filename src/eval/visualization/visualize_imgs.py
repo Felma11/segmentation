@@ -1,3 +1,6 @@
+
+#%%
+
 import numpy as np
 import matplotlib.pyplot as plt
 import SimpleITK as sitk
@@ -52,3 +55,18 @@ def compare_masks(gt_mask, pred_mask):
     plt.imshow(gt_mask, 'gray')
     plt.imshow(pred_mask, 'jet', alpha=0.7)
     plt.show()
+
+#%%
+path = 'C:\\Users\\cgonzale\\Documents\\data\\MedCom_resegmented'
+preds = 'C:\\Users\\cgonzale\\Documents\\data\\preds'
+patient = '016'
+
+#'016', '022', '027', '031', '041', '114'
+
+x = sitk.ReadImage(os.path.join(root_path, 'Pat_'+patient+'_img.mhd'))
+y = sitk.ReadImage(os.path.join(root_path, 'Pat_'+patient+'_seg.mhd'))
+y_pred = sitk.ReadImage(os.path.join(root_path, 'Pat_'+patient+'_pred.nii.gz'))
+
+
+
+# %%

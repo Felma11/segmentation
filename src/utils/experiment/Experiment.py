@@ -16,6 +16,7 @@ from src.utils.helper_functions import get_time_string
 from src.utils.load_restore import join_path, pkl_dump, pkl_load, save_json, load_json
 from src.data.data_splitting import split_dataset
 from src.utils.introspection import get_class
+from src.eval.visualization.plot_metrics import plot_metrics
 
 class Experiment:
     """A bundle of experiments runs with the same configuration. 
@@ -125,13 +126,14 @@ class ExperimentRun:
     def get_obj(self, name):
         return pkl_load(name, path=self.paths['obj'])
 
-    def finish(self, results = None, exception = None):
+    def finish(self, results=None, exception=None):
         elapsed_time = time.time() - self.time_start
         self.review['elapsed_time'] = '{0:.2f}'.format(elapsed_time/60)
         if results:
             self.review['state'] = 'SUCCESS'
             pkl_dump(results, path=self.paths['results'], name='results')
             self.write_summary_measures(results)
+            plot_metrics(result=results, metrics=['dice', 'bce', 'loss'], save_path=os.path.join(self.paths['results']))
         else:
             self.review['state'] = 'FAILED: ' + str(exception)
             # TODO: store exception with better format, or whole error path

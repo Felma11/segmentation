@@ -6,10 +6,11 @@ from src.utils.accumulator import Accumulator
 from src.utils.pytorch.pytorch_load_restore import load_model_state, save_model_state, save_optimizer_state, load_optimizer_state
 
 class Agent():
-    def __init__(self, config, model, scheduler, optimizer, criterion=None):
+    def __init__(self, config, model, scheduler, optimizer, results=None, criterion=None):
         self.config = config
         self.model = model
         self.acc = Accumulator()
+        self.results = results
 
         # TODO: initialize scheduler, optimizer and criterion based on the config
         self.scheduler = scheduler

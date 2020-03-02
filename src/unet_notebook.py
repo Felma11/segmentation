@@ -16,6 +16,7 @@ from src.utils.helper_functions import set_gpu
 from src.data.datasets import get_dataset
 from src.data.torcherize import TorchSegmentationDataset
 from src.continual_learning.task_splitter import ClassTaskSplitter
+from src.eval.results import PartialResult
 
 from src.models.segmentation.UNet import UNet
 from src.agents.unet_agent import UNetAgent
@@ -78,12 +79,12 @@ model = UNet(n_class=1, n_input_layers=25, n_input_channels=1).cuda()
 
 # %%
 optimizer = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=1e-4) 
-exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=100, gamma=0.1)
-
-agent = UNetAgent(config=None, model=model, scheduler=exp_lr_scheduler, optimizer=optimizer)
+exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=100, gamma=0.01)
+results = PartialResult(name='results', metrics=['dice', 'bce', 'loss'])
+agent = UNetAgent(config=None, model=model, scheduler=exp_lr_scheduler, optimizer=optimizer, results=results)
 
 # %%
 task_ix = 2
 agent.train_model(dataloaders[task_ix], nr_epochs=500)
-
+exp_run.finish(results=results)
 # %%

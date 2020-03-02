@@ -7,8 +7,9 @@ from src.eval.metrics import dice
 from src.utils.pytorch.pytorch_load_restore import load_model_state, save_model_state, save_optimizer_state, load_optimizer_state
 
 class UNetAgent(Agent):
-    def __init__(self, config, model, scheduler, optimizer):
-        super().__init__(config, model, scheduler, optimizer, criterion=None)
+
+    def __init__(self, config, model, scheduler, optimizer, results=None):
+        super().__init__(config, model, scheduler, optimizer, results=results, criterion=None)
 
     def save_state(self, path, name):
         state_dict = copy.deepcopy(self.model.state_dict())
@@ -46,5 +47,11 @@ class UNetAgent(Agent):
                     acc.add('dice', float(dice_loss), count=len(inputs))
                     acc.add('bce', float(bce), count=len(inputs))
                     acc.add('loss', float(loss), count=len(inputs))
-                print('Dice: {}, BCE: {}, Loss: {}'.format(acc.mean('dice')
-                , acc.mean('bce'), acc.mean('loss')))
+                print('Dice: {}, BCE: {}, Loss: {}'.format(acc.mean('dice'), 
+                    acc.mean('bce'), acc.mean('loss')))
+                self.results.add(epoch=epoch, metric='dice', value=acc.mean('dice'), 
+                    split=split)
+                self.results.add(epoch=epoch, metric='bce', value=acc.mean('bce'), 
+                    split=split)
+                self.results.add(epoch=epoch, metric='loss', value=acc.mean('loss'), 
+                    split=split)
