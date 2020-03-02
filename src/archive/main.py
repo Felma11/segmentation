@@ -2,11 +2,11 @@ import torch
 import torch.optim as optim
 from torch.optim import lr_scheduler
 
-from src.models.UNet import UNet
+from src.models.segmentation.UNet import UNet
 from src.utils.load_restore import join_path, pkl_dump
-from src.data.data_processing import load_data
-from src.data.data_loader import setup_dataloaders
-from src.train.train import train_model, evaluate_model
+from src.archive.data_processing import load_data
+from src.archive.data_loader import setup_dataloaders
+from src.archive.train import train_model, evaluate_model
 
 import torch.nn.functional as F
 
@@ -61,7 +61,7 @@ def eval_model(device):
     print(pred.shape)
 
 """
-#preprocessing()
+preprocessing()
 #assert torch.cuda.is_available()
 #device = torch.device("cuda:0")
 #train(device)

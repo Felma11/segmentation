@@ -17,7 +17,7 @@ from src.data.datasets import get_dataset
 from src.data.torcherize import TorchSegmentationDataset
 from src.continual_learning.task_splitter import ClassTaskSplitter
 
-from src.models.UNet import UNet
+from src.models.segmentation.UNet import UNet
 from src.agents.unet_agent import UNetAgent
 
 # %%

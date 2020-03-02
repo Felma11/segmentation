@@ -5,8 +5,8 @@ import copy
 from collections import defaultdict
 import math
 
-from src.models.UNet import UNet
-from src.train.losses import calc_loss, calc_losses
+from src.models.segmentation.UNet import UNet
+from src.archive.losses import calc_loss, calc_losses
 from src.utils.load_restore import join_path
 from src.utils.accumulator import Accumulator
  

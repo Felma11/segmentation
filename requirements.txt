@@ -10,3 +10,4 @@ python-telegram-bot==12.4.2
 Pillow==6.1.0
 pandas==1.0.1
 SimpleITK==1.2.4
+pylint==2.4.4

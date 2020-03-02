@@ -5,7 +5,7 @@ from src.utils.load_restore import pkl_load
 import numpy as np
 from PIL import Image
 
-from src.data.data_processing import split_data, slice_data_to_2D
+from src.archive.data_processing import split_data, slice_data_to_2D
  
 class MyDataset(Dataset):
     def __init__(self, imgs, masks, transform_image=None, transform_mask=None):

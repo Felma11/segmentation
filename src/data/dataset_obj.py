@@ -35,8 +35,8 @@ class Dataset:
     def get_instances(self, index_list):
         return [x for (i, x) in enumerate(self.instances) if i in index_list]
 
-    def pretty_print(self):
-        class_dist = [len([e for e in self.examples[split] if e.y == c]) 
+    def pretty_print(self, split):
+        class_dist = [len([e for e in self.instances[split] if e.y == c]) 
                 for c in self.classes]
         string = ('Dataset ' + self.name + ' with classes: ' + str(self.classes) 
             + ', filetype: ' + self.file_type + '\n\r' 
