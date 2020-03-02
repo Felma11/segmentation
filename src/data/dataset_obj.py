@@ -9,14 +9,15 @@
 class Instance: 
     """
     An instance containing a path to x, a class value y and the path to a 
-    segmentation mask.
+    segmentation mask. instances with same 'group id' should always remain on
+    the same dataset split (a group_id could e.g be a patient name).
     """
-    def __init__(self, x_path, y=None, mask=None):
+    def __init__(self, x, y=None, mask=None, group_id=None):
         assert (y is not None) or (mask is not None)
-        self.x_path = x_path
+        self.x = x
         self.mask = mask
         self.y = y
-        self.group_id = None
+        self.group_id = group_id
 
 class Dataset:
     """A Dataset, which contains a list of instances."""

@@ -6,13 +6,13 @@ from src.utils.accumulator import Accumulator
 from src.utils.pytorch.pytorch_load_restore import load_model_state, save_model_state, save_optimizer_state, load_optimizer_state
 
 class Agent():
-    def __init__(self, config, model, optimizer, criterion):
+    def __init__(self, config, model, scheduler, optimizer, criterion=None):
         self.config = config
         self.model = model
         self.acc = Accumulator()
 
         # TODO: initialize scheduler, optimizer and criterion based on the config
-        #self.scheduler = None
+        self.scheduler = scheduler
         self.optimizer = optimizer
         self.criterion_fn = criterion
 
@@ -60,13 +60,17 @@ class Agent():
         outputs = self.model.forward(inputs)
         return inputs, targets, outputs
 
+    def get_lr(self):
+        for param_group in self.optimizer.param_groups:
+            return param_group['lr']
+
     def train_model(self, dataloaders, nr_epochs):
         for epoch in range(nr_epochs):
             print('Epoch {} of {}'.format(epoch, nr_epochs))
             # Set training mode
             self.model.train()
             # Set learning rate
-            #self.scheduler.step(epoch)
+            self.scheduler.step(epoch)
             self.acc.init()
             # Train
             for i, data in enumerate(dataloaders['train']):

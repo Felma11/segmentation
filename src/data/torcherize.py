@@ -4,6 +4,7 @@
 # ------------------------------------------------------------------------------
 
 from PIL import Image
+import numpy as np
 import torch
 from torch.utils.data import Dataset
 from torchvision import transforms
@@ -25,16 +26,25 @@ transform_pipelines['mnist'] = {
         transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))]
     }
 
+transform_pipelines['medcom'] = {
+    'homogenize': [transforms.ToTensor(),
+        transforms.ToPILImage(mode='L'),
+        transforms.Resize(size=(512, 512)),
+        transforms.ToTensor()
+    ]
+    }
+
 class TorchDS(Dataset):
-    def __init__(self, dataset_obj, index_list, transform='regular', classification=True):
+    def __init__(self, dataset_obj, index_list, transform='regular'):
         self.name = dataset_obj.name
         self.set_tranform(transform)
+
+        self.instances = dataset_obj.get_instances(index_list)
+        self.filenames = [x.x for x in self.instances]
+
         self.classes = tuple(sorted(list(dataset_obj.classes)))
         self.nr_classes = len(self.classes)
-        self.instances = dataset_obj.get_instances(index_list)
-        if classification:
-            self.labels = torch.LongTensor([self.classes.index(x.y) for x in self.instances])
-        self.filenames = [x.x_path for x in self.instances]
+        self.labels = torch.LongTensor([self.classes.index(x.y) for x in self.instances])
 
     def set_tranform(self, transform):
         self.transform = transforms.Compose(transform_pipelines[self.name][transform])
@@ -48,3 +58,25 @@ class TorchDS(Dataset):
         image = Image.open(self.filenames[idx])
         image = self.transform(image)
         return image, self.labels[idx]
+
+class TorchSegmentationDataset(Dataset):
+    def __init__(self, dataset_obj, index_list, transform='homogenize'):
+        self.name = dataset_obj.name.split('_')[0]
+        self.set_tranform(transform)
+
+        self.instances = dataset_obj.get_instances(index_list)
+
+        self.classes = tuple(sorted(list(dataset_obj.classes)))
+        self.nr_classes = len(self.classes)
+        self.labels = torch.LongTensor([self.classes.index(x.y) for x in self.instances])
+
+    def set_tranform(self, transform):
+        self.transform = transforms.Compose(transform_pipelines[self.name][transform])
+
+    def __len__(self):
+        return len(self.instances)
+
+    def __getitem__(self, idx):
+        img = self.transform(self.instances[idx].x.astype(np.float32))
+        mask = self.transform(self.instances[idx].mask.astype(np.float32))
+        return img, mask

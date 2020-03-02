@@ -1,7 +1,7 @@
 
 from src.data.dataset_obj import Dataset, Instance
 from src.data.data_splitting import split_instances, create_instance_folds, split_dataset
-
+ 
 def test_split_instances():
     instances = []
     instances.append(Instance('0A', y='0'))
@@ -123,3 +123,66 @@ def test_split_dataset():
         class_dictribution = ds._get_class_distribution(split['test'])
         assert class_dictribution['0']==2
         assert class_dictribution['1']==4
+
+def test_group_id_division():
+    instances = []
+    instances.append(Instance('0Aa', y='0', group_id='a'))
+    instances.append(Instance('0Bc', y='0', group_id='c'))
+    instances.append(Instance('0Cd', y='0', group_id='d'))
+    instances.append(Instance('0Dd', y='0', group_id='d'))
+    instances.append(Instance('0Ee', y='0', group_id='e'))
+    instances.append(Instance('1Aa', y='1', group_id='a'))
+    instances.append(Instance('1Bg', y='1', group_id='g'))
+    instances.append(Instance('1Cf', y='1', group_id='f'))
+    instances.append(Instance('1Df', y='1', group_id='f'))
+    instances.append(Instance('1Eb', y='1', group_id='b'))
+    instances.append(Instance('1Fb', y='1', group_id='b'))
+    instances.append(Instance('1Gc', y='1', group_id='c'))
+    instances.append(Instance('1Ha', y='1', group_id='a'))
+    instances.append(Instance('0A2a', y='0', group_id='a'))
+    instances.append(Instance('0B2b', y='0', group_id='b'))
+    instances.append(Instance('0C2b', y='0', group_id='b'))
+    instances.append(Instance('0D2c', y='0', group_id='c'))
+    instances.append(Instance('0E2e', y='0', group_id='e'))
+    instances.append(Instance('1A2g', y='1', group_id='g'))
+    instances.append(Instance('1B2h', y='1', group_id='h'))
+    instances.append(Instance('1C2h', y='1', group_id='h'))
+    instances.append(Instance('1D2e', y='1', group_id='e'))
+    instances.append(Instance('1E2e', y='1', group_id='e'))
+    instances.append(Instance('1F2d', y='1', group_id='d'))
+    instances.append(Instance('1G2c', y='1', group_id='c'))
+    instances.append(Instance('1H2d', y='1', group_id='d'))
+    ds = Dataset(name=None, img_shape=None, instances=instances)
+    # Split into 2 folds. Then split into train, test and validation sets
+    folds = split_dataset(ds, test_ratio=0.2, val_ratio=0.4, nr_repetitions=2, 
+        cross_validation=True, respecting_groups=True)
+    for fold in folds:
+        assert len(set(fold['train'] + fold['val'] + fold['test'])) == len(fold['train'] + fold['val'] + fold['test'])
+        class_dictribution = ds._get_class_distribution(fold['train'])
+        assert class_dictribution['0']>=2
+        assert class_dictribution['1']>=4
+        assert len([instances[ix].group_id for ix in fold['train']]) % 2 == 0
+        class_dictribution = ds._get_class_distribution(fold['val'])
+        assert class_dictribution['0']>=2
+        assert class_dictribution['1']>=2
+        assert len([instances[ix].group_id for ix in fold['val']]) % 2 == 0
+        class_dictribution = ds._get_class_distribution(fold['test'])
+        assert class_dictribution['0']>=4
+        assert class_dictribution['1']>=6
+        assert len([instances[ix].group_id for ix in fold['test']]) % 2 == 0
+    # Repetitions
+    splits = split_dataset(ds, test_ratio=0.2, val_ratio=0.2, nr_repetitions=3, 
+        cross_validation=False, respecting_groups=True)
+    for split in splits:
+        class_dictribution = ds._get_class_distribution(split['train'])
+        assert class_dictribution['0']==6
+        assert class_dictribution['1']==10
+        assert len([instances[ix].group_id for ix in fold['train']]) % 2 == 0
+        class_dictribution = ds._get_class_distribution(split['val'])
+        assert class_dictribution['0']==2
+        assert class_dictribution['1']==2
+        assert len([instances[ix].group_id for ix in fold['val']]) % 2 == 0
+        class_dictribution = ds._get_class_distribution(split['test'])
+        assert class_dictribution['0']==2
+        assert class_dictribution['1']==4
+        assert len([instances[ix].group_id for ix in fold['test']]) % 2 == 0
