@@ -1,6 +1,6 @@
 # Ignore the following directories and files:
 /storage/*
-
+*/storage/*
 # VS code project setup
 /.vscode/*
 

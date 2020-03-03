@@ -8,9 +8,13 @@ from src.utils.pytorch.pytorch_load_restore import load_model_state, save_model_
 
 class UNetAgent(Agent):
 
-    def __init__(self, config, model, scheduler, optimizer, results=None):
-        super().__init__(config, model, scheduler, optimizer, results=results, criterion=None)
+    def __init__(self, config, exp_paths, model, scheduler, optimizer, results=None, criterion=None, agent_name=''):
+        agent_name = 'UNetAgent_'+agent_name if agent_name  else 'UNetAgent'
+        super().__init__(config=config, exp_paths=exp_paths, model=model, 
+            scheduler=scheduler, optimizer=optimizer, results=results, 
+            criterion=None, agent_name=agent_name)
 
+    '''
     def save_state(self, path, name):
         state_dict = copy.deepcopy(self.model.state_dict())
         save_model_state(state_dict, name=name+'_state_dict', path=path)
@@ -21,6 +25,7 @@ class UNetAgent(Agent):
         restored_model = load_model_state(self.model, name=name, path=path)
         restored_optimizer = load_optimizer_state(self.optimizer, name=name, path=path)
         return restored_model and restored_optimizer
+    '''
 
     def calculate_criterion(self, outputs, targets):
         bce_weight=0.5

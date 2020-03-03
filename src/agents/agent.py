@@ -2,12 +2,18 @@
 # Agents contain models, which they train, as well as additional functionality.
 # ------------------------------------------------------------------------------
 
+import os
 from src.utils.accumulator import Accumulator
-from src.utils.pytorch.pytorch_load_restore import load_model_state, save_model_state, save_optimizer_state, load_optimizer_state
+from src.utils.pytorch.pytorch_load_restore import load_model_state, save_model_state, save_optimizer_state, load_optimizer_state, save_scheduler_state, load_scheduler_state
+import sys
 
 class Agent():
-    def __init__(self, config, model, scheduler, optimizer, results=None, criterion=None):
+    def __init__(self, config, exp_paths, model, scheduler, optimizer, 
+        results=None, criterion=None, agent_name=''):
+        self.agent_name = agent_name
+        self.exp_paths = exp_paths
         self.config = config
+
         self.model = model
         self.acc = Accumulator()
         self.results = results
@@ -17,15 +23,46 @@ class Agent():
         self.optimizer = optimizer
         self.criterion_fn = criterion
 
-    def save_state(self, path, name):
-        """Save all necessary to recuperate the state."""
-        save_model_state(self.model, name=name, path=path)
-        save_optimizer_state(self.optimizer, name=name, path=path)
+        # Continue traning model
+        '''
 
-    def restore_state(self, path, name):
-        restored_model = load_model_state(self.model, name=name, path=path)
-        restored_optimizer = load_optimizer_state(self.optimizer, name=name, path=path)
-        return restored_model and restored_optimizer
+        for name, param in self.model.state_dict().items():
+            print(name)
+            print(param.shape)
+        sys.exit()
+        '''
+        self.start_epoch = 0
+        restart_from_latest = self.config.get('restart_from_latest', True)    
+        if restart_from_latest:
+            model_states = [f for f in os.listdir(self.exp_paths['agent_states']) if f.split('_')[0]==self.agent_name]
+            if model_states:
+                epochs = [int(model_state.split('_')[1]) for model_state in model_states]
+                latest_epoch = max(epochs)
+                self.start_epoch = latest_epoch
+                # TODO: use name argument
+                self.restore_state(epoch=latest_epoch)
+
+    def save_state(self, epoch, name=''):
+        """Save all necessary to recuperate the state."""
+        path = self.exp_paths['agent_states']
+        state_name = self.agent_name + '_' + str(epoch)
+        if name:
+            state_name += '_' + name
+        save_model_state(self.model, name=state_name, path=path)
+        save_optimizer_state(self.optimizer, name=state_name, path=path)
+        save_scheduler_state(self.scheduler, name=state_name, path=path)
+
+    def restore_state(self, epoch, name=''):
+        path = self.exp_paths['agent_states']
+        state_name = self.agent_name + '_' + str(epoch)
+        if name:
+            state_name += '_' + name
+        restored_model = load_model_state(self.model, name=state_name, path=path)
+        restored_optimizer = load_optimizer_state(self.optimizer, name=state_name, path=path)
+        restored_scheduler = load_scheduler_state(self.scheduler, name=state_name, path=path)
+        if restored_model and restored_optimizer and restored_scheduler:
+            print('Restored state {}'.format(state_name))
+        return restored_model and restored_optimizer and restored_scheduler
 
     def eval(self, dataloader, measures=['loss']):
         self.model.train(False)
@@ -40,7 +77,7 @@ class Agent():
     def track_statistics(self, epoch, dataloaders):
         # TODO: store running_loss
         # TODO track and print other measures every so many epochs
-        if epoch % self.config.get('tracking_interval', 5) == 0:
+        if epoch % self.config.get('tracking_interval', 1) == 0:
             print('Epoch {}'.format(epoch))
             print('Avg. train loss accumulated: {}'.format(self.acc.mean('loss')))
             train_values = self.eval(dataloader=dataloaders['train'], measures=['loss'])
@@ -66,7 +103,7 @@ class Agent():
             return param_group['lr']
 
     def train_model(self, dataloaders, nr_epochs):
-        for epoch in range(nr_epochs):
+        for epoch in range(self.start_epoch, nr_epochs+self.start_epoch):
             print('Epoch {} of {}'.format(epoch, nr_epochs))
             # Set training mode
             self.model.train()
@@ -84,3 +121,8 @@ class Agent():
                 self.acc.add('loss', loss.item())
             # Save and print epoch statistics
             self.track_statistics(epoch, dataloaders)
+
+            if epoch % self.config.get('model_save_interval', 5) == 0:
+                self.save_state(epoch=epoch)
+
+            

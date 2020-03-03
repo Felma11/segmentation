@@ -1,9 +1,7 @@
 # %%
-'''
 from IPython import get_ipython
 get_ipython().magic('load_ext autoreload') 
 get_ipython().magic('autoreload 2')
-'''
 
 import torch
 assert torch.cuda.is_available()
@@ -33,11 +31,10 @@ def create_experiment(config):
 
 config = {
     'cross_validation': True, 
-    'nr_runs': 5,
+    'nr_runs': 3,
     'val_ratio': 0.2,
-    'experiment_name': 'medcom_experiment',
-    'dataset_name': 'medcom',
-    'dataset_key': 'Manufacturer',
+    'experiment_name': 'seg_challenge_experiment',
+    'dataset_name': 'segChallengeProstate',
     'model_class_path': '',
     'agent_class_path': '',
     'weights_file_name': ''}
@@ -45,7 +42,7 @@ config = {
 create_experiment(config)
 '''
 # %%
-experiment_name='medcom_experiment'
+experiment_name='seg_challenge_experiment'
 
 # Restore configuration and get experiment run
 exp = Experiment(load_exp_name=experiment_name)
@@ -55,38 +52,32 @@ exp_run = exp.get_experiment_run(idx_k=0)
 # Fetch dataset
 dataset = get_dataset(config)
 
-# Create task and class mappings
-nr_tasks = 3
-task_splitter = ClassTaskSplitter(dataset=dataset, save_path=exp_run.paths['obj'], nr_tasks=nr_tasks)
-print(task_splitter.task_class_mapping)
-
 # %%
 # Get PyTorch datasets and dataloaders
 splits = ['train', 'val', 'test']
 batch_size = config.get('batch_size', 20)
-pytorch_datasets = [{split: None for split in splits} for task_ix in range(nr_tasks)]
-dataloaders = [{split: None for split in splits} for task_ix in range(nr_tasks)]
+pytorch_datasets = {split: None for split in splits}
+dataloaders = dict()
 
-for task_ix in range(nr_tasks):
-    for split in splits:
-        index_list = task_splitter.get_task_ixs(exp_ixs=exp_run.dataset_ixs[split], task_ix=task_ix)
-        transform = 'aug' if split == 'train' else 'crop'
-        pytorch_datasets[task_ix][split] = TorchSegmentationDataset(dataset_obj=dataset, index_list=index_list, transform=transform)
-        shuffle = True
-        dataloaders[task_ix][split] = torch.utils.data.DataLoader(pytorch_datasets[task_ix][split], batch_size=batch_size, shuffle=shuffle)
-
+for split in splits:
+    transform = 'aug' if split == 'train' else 'crop'
+    pytorch_datasets[split] = TorchSegmentationDataset(dataset_obj=dataset, 
+    index_list=exp_run.dataset_ixs[split], transform=transform)
+    shuffle = True if split=='train' else False
+    dataloaders[split] = torch.utils.data.DataLoader(pytorch_datasets[split], 
+    batch_size=batch_size, shuffle=shuffle)
 
 # %%
-'''
+
 from src.eval.visualization.visualize_imgs import plot_overlay_mask
-dataloader = dataloaders[0]['train']
+dataloader = dataloaders['train']
 for x, y in dataloader:
     for i in range(len(x)):
         img, mask = x[i], y[i]
         if torch.nonzero(mask).size(0) > 0:
             plot_overlay_mask(img, mask)
     break
-'''
+
 
 
 # %%

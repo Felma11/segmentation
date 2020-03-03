@@ -57,6 +57,7 @@ def compare_masks(gt_mask, pred_mask):
     plt.show()
 
 #%%
+'''
 path = 'C:\\Users\\cgonzale\\Documents\\data\\MedCom_resegmented'
 preds = 'C:\\Users\\cgonzale\\Documents\\data\\preds'
 patient = '016'
@@ -70,3 +71,4 @@ y_pred = sitk.ReadImage(os.path.join(root_path, 'Pat_'+patient+'_pred.nii.gz'))
 
 
 # %%
+'''

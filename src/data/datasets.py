@@ -1,7 +1,7 @@
 # ------------------------------------------------------------------------------
 # This module contains methods to build datasets.
 # ------------------------------------------------------------------------------
-
+#%%
 import os
 import csv
 import random
@@ -42,6 +42,7 @@ def get_dataset(config):
     ds = get_class('src.data.datasets.'+name)(
         root_path=root_path,
         name=keyed_name)
+    print('Saving dataset')
     save_dataset(ds, dataset_name=keyed_name)
     return ds
 
@@ -116,7 +117,7 @@ def patient_names(key, value, metadata_dict):
 def medcom(root_path,
     name = 'medcom_Manufacturer', 
     file_type = 'mhd', 
-    img_shape = (512, 512),
+    img_shape = None,
     nr_channels = 1):
     # Fetch metadata with key information
     task_key = key_mapping[name.split('_')[1]]
@@ -130,8 +131,6 @@ def medcom(root_path,
     # Fetch images and resample
     #patients = [str(x).rjust(3, '0') for x in range(1, 189)]
     #patients.remove('002')
-    resample_size = 512, 512, 24
-    resample_spacing = 1, 1, 3.3    
     instances = []
     # Some are excluded because the number of examples for that key is too small
     for patient in patient_task.keys():
@@ -151,6 +150,30 @@ def medcom(root_path,
         hold_out_test_ixs=[])
     return ds
 
-
-
-# %%
+import sys
+def segChallengeProstate(root_path,
+    name = 'segChallengeProstate', 
+    file_type = 'nii', 
+    img_shape = None,
+    nr_channels = 1,
+    merge_labels=True):
+    images_path = os.path.join(root_path, 'imagesTr')
+    labels_path = os.path.join(root_path, 'labelsTr')
+    filenames = [x for x in os.listdir(images_path) if x[:8] == 'prostate']
+    instances = []
+    for ix in range(len(filenames)):
+        x = sitk.ReadImage(os.path.join(images_path, filenames[ix]))
+        x_slices = sitk.GetArrayFromImage(x)[0] # Taking only T2-weighted
+        y = sitk.ReadImage(os.path.join(labels_path, filenames[ix]))
+        y_slices = sitk.GetArrayFromImage(y)
+        assert x_slices.shape == y_slices.shape
+        # No longer distinguish between central and peripheral zones
+        if merge_labels:
+            y_slices = np.where(y_slices==2, 1, y_slices)
+        for slice_ix in range(len(x_slices)):
+            instances.append(Instance(x=x_slices[slice_ix], y=None,
+        mask=y_slices[slice_ix], group_id=filenames[ix]))
+    ds = Dataset(name=name, img_shape=img_shape, file_type=file_type, 
+        nr_channels=nr_channels, instances=instances, 
+        hold_out_test_ixs=[])
+    return ds
