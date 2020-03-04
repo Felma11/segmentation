@@ -12,3 +12,4 @@ pandas==1.0.1
 SimpleITK==1.2.4
 pylint==2.4.4
 tensorboard==2.1.0
+jupyter==1.0.0

@@ -4,8 +4,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import SimpleITK as sitk
+import math
 
-def plot_3d_img(img):
+def plot_3d_img(img, save_path=None):
     """
     :param img: SimpleITK image or numpy array
     """
@@ -13,14 +14,20 @@ def plot_3d_img(img):
         img = sitk.GetArrayFromImage(img)
     assert len(img.shape) == 3
     assert img.shape[1] == img.shape[2]
-    plt.figure(figsize=(20,16))
+    nr_slices = len(segmentation)
+    nr_cols=8
+    nr_rows=int(math.ceil(nr_slices/nr_cols))
+    plt.figure(figsize=(nr_cols*3,nr_rows*3))
     plt.gray()
     plt.subplots_adjust(0,0,1,1,0.01,0.01)
     for i in range(img.shape[0]):
-        plt.subplot(5,6,i+1), plt.imshow(img[i]), plt.axis('off')
-    plt.show()
-
-def plot_3d_segmentation(img, segmentation):
+        plt.subplot(nr_rows,nr_cols,i+1), plt.imshow(img[i]), plt.axis('off')
+    if save_path:
+        plt.savefig(save_path)
+    else:
+        plt.show()
+    
+def plot_3d_segmentation(img, segmentation, save_path=None):
     """
     :param img: SimpleITK image or numpy array
     """
@@ -30,13 +37,18 @@ def plot_3d_segmentation(img, segmentation):
     assert len(img.shape) == 3
     assert img.shape[1] == img.shape[2] # Channels first
     assert img.shape == segmentation.shape
-    
-    plt.figure(figsize=(20,16))
+    nr_slices = len(segmentation)
+    nr_cols=8
+    nr_rows=int(math.ceil(nr_slices/nr_cols))
+    plt.figure(figsize=(nr_cols*3,nr_rows*3))
     plt.subplots_adjust(0,0,1,1,0.01,0.01)
     for i in range(img.shape[0]):
-        plt.subplot(5,6,i+1), plt.imshow(img[i], 'gray', interpolation='none'), plt.axis('off')
-        plt.subplot(5,6,i+1), plt.imshow(segmentation[i], 'jet', interpolation='none', alpha=0.5), plt.axis('off')
-    plt.show()
+        plt.subplot(nr_rows,nr_cols,i+1), plt.imshow(img[i], 'gray', interpolation='none'), plt.axis('off')
+        plt.subplot(nr_rows,nr_cols,i+1), plt.imshow(segmentation[i], 'jet', interpolation='none', alpha=0.5), plt.axis('off')
+    if save_path:
+        plt.savefig(save_path)
+    else:
+        plt.show()
 
 def plot_overlay_mask(img, mask):
     if 'torch' in str(type(img)):
@@ -58,16 +70,6 @@ def compare_masks(gt_mask, pred_mask):
 
 #%%
 '''
-path = 'C:\\Users\\cgonzale\\Documents\\data\\MedCom_resegmented'
-preds = 'C:\\Users\\cgonzale\\Documents\\data\\preds'
-patient = '016'
-
-#'016', '022', '027', '031', '041', '114'
-
-x = sitk.ReadImage(os.path.join(root_path, 'Pat_'+patient+'_img.mhd'))
-y = sitk.ReadImage(os.path.join(root_path, 'Pat_'+patient+'_seg.mhd'))
-y_pred = sitk.ReadImage(os.path.join(root_path, 'Pat_'+patient+'_pred.nii.gz'))
-
 # Visualize from dataloader
 from src.eval.visualization.visualize_imgs import plot_overlay_mask
 dataloader = dataloaders['train']
@@ -77,5 +79,5 @@ for x, y in dataloader:
         if torch.nonzero(mask).size(0) > 0:
             plot_overlay_mask(img, mask)
     break
-# %%
 '''
+# %%
