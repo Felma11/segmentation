@@ -14,7 +14,7 @@ def plot_3d_img(img, save_path=None):
         img = sitk.GetArrayFromImage(img)
     assert len(img.shape) == 3
     assert img.shape[1] == img.shape[2]
-    nr_slices = len(segmentation)
+    nr_slices = len(img)
     nr_cols=8
     nr_rows=int(math.ceil(nr_slices/nr_cols))
     plt.figure(figsize=(nr_cols*3,nr_rows*3))
