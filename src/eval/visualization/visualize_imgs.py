@@ -68,7 +68,14 @@ x = sitk.ReadImage(os.path.join(root_path, 'Pat_'+patient+'_img.mhd'))
 y = sitk.ReadImage(os.path.join(root_path, 'Pat_'+patient+'_seg.mhd'))
 y_pred = sitk.ReadImage(os.path.join(root_path, 'Pat_'+patient+'_pred.nii.gz'))
 
-
-
+# Visualize from dataloader
+from src.eval.visualization.visualize_imgs import plot_overlay_mask
+dataloader = dataloaders['train']
+for x, y in dataloader:
+    for i in range(len(x)):
+        img, mask = x[i], y[i]
+        if torch.nonzero(mask).size(0) > 0:
+            plot_overlay_mask(img, mask)
+    break
 # %%
 '''

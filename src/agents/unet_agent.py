@@ -37,11 +37,10 @@ class UNetAgent(Agent):
 
     def track_statistics(self, epoch, dataloaders):
         bce_weight=0.5
-        if epoch % 5 == 0:
+        if epoch % 20 == 0:
             print('Epoch {}, LR {}'.format(epoch, self.get_lr()))
             self.model.train(False)
             for split in ['train', 'val', 'test']:
-                print('Phase: {}'.format(split))
                 acc = Accumulator(keys=['dice', 'bce', 'loss'])
                 for i, data in enumerate(dataloaders[split]):
                     inputs, targets, outputs = self.get_input_target_output(data)
@@ -52,7 +51,7 @@ class UNetAgent(Agent):
                     acc.add('dice', float(dice_loss), count=len(inputs))
                     acc.add('bce', float(bce), count=len(inputs))
                     acc.add('loss', float(loss), count=len(inputs))
-                print('Dice: {}, BCE: {}, Loss: {}'.format(acc.mean('dice'), 
+                print('Phase '+split+' Dice: {0:.2f}, BCE: {1:.2f}, Loss: {2:.2f}'.format(1 - acc.mean('dice'), 
                     acc.mean('bce'), acc.mean('loss')))
                 self.results.add(epoch=epoch, metric='dice', value=acc.mean('dice'), 
                     split=split)

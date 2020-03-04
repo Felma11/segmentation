@@ -153,7 +153,7 @@ def medcom(root_path,
 import sys
 def segChallengeProstate(root_path,
     name = 'segChallengeProstate', 
-    file_type = 'nii', 
+    file_type = 'nii',
     img_shape = None,
     nr_channels = 1,
     merge_labels=True):

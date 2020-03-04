@@ -177,8 +177,6 @@ def _divide_sets_similar_length(instances, exs, k, respecting_groups=True):
             if nr_fold_groups >= nr_per_fold_final[current_fold_ix]:
                 current_fold_ix += 1
                 nr_fold_groups = 0
-                print('Next fold')
-                print(len(folds[current_fold_ix-1]))
         # Return divided indexes
         for fold in folds:
             assert len(fold)>0, 'Not enough examples'

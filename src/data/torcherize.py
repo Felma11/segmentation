@@ -79,10 +79,10 @@ class TorchDS(Dataset):
         return image, self.labels[idx]
 
 class TorchSegmentationDataset(Dataset):
-    def __init__(self, dataset_obj, index_list, transform='homogenize'):
+    def __init__(self, dataset_obj, index_list, aug, transform='homogenize'):
         self.name = dataset_obj.name.split('_')[0]
         if isinstance(transform, str):
-            self.set_tranform(transform)
+            self.set_tranform(transform, aug)
         else:
             self.transform = transform
 
@@ -92,8 +92,19 @@ class TorchSegmentationDataset(Dataset):
         self.nr_classes = len(self.classes)
         self.labels = torch.LongTensor([self.classes.index(x.y) for x in self.instances])
 
-    def set_tranform(self, transform):
-        self.transform = transforms.Compose(transform_pipelines[self.name][transform])
+    def set_tranform(self, transform, aug=None):
+        # TODO
+        if transform == 'aug':
+            trans = [transforms.ToTensor(),
+            transforms.ToPILImage(),
+            transforms.RandomHorizontalFlip(p=0.5),
+            transforms.RandomAffine(degrees=aug['degrees'], translate=aug['translate'], scale=aug['scale'], shear=aug['shear'], resample=False, fillcolor=0),
+            transforms.RandomCrop(size=size, padding=None, pad_if_needed=True, fill=0, padding_mode='constant'),
+            transforms.ToTensor()
+            ]
+            self.transform = transforms.Compose(trans)
+        else:
+            self.transform = transforms.Compose(transform_pipelines[self.name][transform])
 
     def __len__(self):
         return len(self.instances)

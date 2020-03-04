@@ -104,7 +104,6 @@ class Agent():
 
     def train_model(self, dataloaders, nr_epochs):
         for epoch in range(self.start_epoch, nr_epochs+self.start_epoch):
-            print('Epoch {} of {}'.format(epoch, nr_epochs))
             # Set training mode
             self.model.train()
             # Set learning rate
@@ -122,7 +121,7 @@ class Agent():
             # Save and print epoch statistics
             self.track_statistics(epoch, dataloaders)
 
-            if epoch % self.config.get('model_save_interval', 5) == 0:
+            if epoch % self.config.get('model_save_interval', 100) == 0:
                 self.save_state(epoch=epoch)
 
             

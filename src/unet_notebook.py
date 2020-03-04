@@ -40,7 +40,8 @@ config = {
     'dataset_key': 'Manufacturer',
     'model_class_path': '',
     'agent_class_path': '',
-    'weights_file_name': ''}
+    'weights_file_name': '',
+    nr_epochs=300}
 
 create_experiment(config)
 '''
