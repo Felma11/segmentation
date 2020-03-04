@@ -9,3 +9,5 @@ def dice(pred, target, smooth = 1.):
     loss = (1 - ((2. * intersection + smooth) / (pred.sum(dim=2).sum(dim=2) + target.sum(dim=2).sum(dim=2) + smooth)))
      
     return loss.mean()
+
+    
