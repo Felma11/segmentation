@@ -39,6 +39,9 @@ class Experiment:
             self.name = self.config.get('experiment_name', get_time_string())
             # Create root directory in ./storage/experiments
             self.path = join_path(['storage', 'experiments', self.name])
+            if os.path.isdir(self.path):
+                self.name += '_'+get_time_string()
+                self.path = join_path(['storage', 'experiments', self.name])
             os.makedirs(self.path)
             # Save 'config.json' file
             save_json(self.config, path=self.path, name='config')
@@ -133,7 +136,11 @@ class ExperimentRun:
             self.review['state'] = 'SUCCESS'
             pkl_dump(results, path=self.paths['results'], name='results')
             self.write_summary_measures(results)
-            plot_metrics(result=results, metrics=['dice', 'bce', 'loss'], save_path=os.path.join(self.paths['results']))
+            if isinstance(results, list):
+                for result in results:
+                    plot_metrics(result=result, metrics=['dice', 'bce', 'loss'], save_path=os.path.join(self.paths['results']))
+            else:
+                plot_metrics(result=results, metrics=['dice', 'bce', 'loss'], save_path=os.path.join(self.paths['results']))
         else:
             self.review['state'] = 'FAILED: ' + str(exception)
             # TODO: store exception with better format, or whole error path
