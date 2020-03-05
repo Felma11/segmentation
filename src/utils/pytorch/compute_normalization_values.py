@@ -44,3 +44,12 @@ pytorch_dataset = TorchSegmentationDataset(dataset_obj=dataset,
 print(normalization_values(pytorch_dataset))
 
 # %%
+dataset = get_dataset({"dataset_name": "medcom", "dataset_key": "Manufacturer"})
+transform = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.ToPILImage(),
+    transforms.Resize(size=(320, 320)),
+    transforms.ToTensor()])
+pytorch_dataset = TorchSegmentationDataset(dataset_obj=dataset, 
+    index_list=list(range(len(dataset.instances))), transform=transform)
+print(normalization_values(pytorch_dataset))
