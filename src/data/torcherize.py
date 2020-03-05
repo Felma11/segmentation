@@ -14,6 +14,7 @@ transform_pipelines = dict()
 
 norm_transforms = dict()
 norm_transforms['segChallengeProstate'] = transforms.Normalize((310.2,), (251.2,))
+norm_transforms['medcom'] = transforms.Normalize((315.4,), (271.8,))
 
 transform_pipelines['mnist'] = {
     'regular': [transforms.ToTensor(),
@@ -37,6 +38,7 @@ transform_pipelines['medcom'] = {
         transforms.RandomHorizontalFlip(p=0.5),
         transforms.RandomAffine(degrees=10, translate=(0.2, 0.2), scale=(0.8, 1.2), shear=5, resample=False, fillcolor=0),
         transforms.RandomCrop(size=size, padding=None, pad_if_needed=True, fill=0, padding_mode='constant'),
+        transforms.Resize(size=size),
         transforms.ToTensor()
         ],
     'resize': [transforms.ToTensor(),
@@ -79,12 +81,13 @@ class TorchDS(Dataset):
         return image, self.labels[idx]
 
 class TorchSegmentationDataset(Dataset):
-    def __init__(self, dataset_obj, index_list, aug, transform='homogenize'):
+    def __init__(self, dataset_obj, index_list, aug=None, transform='homogenize'):
         self.name = dataset_obj.name.split('_')[0]
+        self.img_transform = None
         if isinstance(transform, str):
             self.set_tranform(transform, aug)
         else:
-            self.transform = transform
+            self.img_mask_transform = transform
 
         self.instances = dataset_obj.get_instances(index_list)
 
@@ -93,18 +96,28 @@ class TorchSegmentationDataset(Dataset):
         self.labels = torch.LongTensor([self.classes.index(x.y) for x in self.instances])
 
     def set_tranform(self, transform, aug=None):
-        # TODO
+        # TODO nicer
         if transform == 'aug':
-            trans = [transforms.ToTensor(),
+            transform_lst = [transforms.ToTensor(),
             transforms.ToPILImage(),
             transforms.RandomHorizontalFlip(p=0.5),
             transforms.RandomAffine(degrees=aug['degrees'], translate=aug['translate'], scale=aug['scale'], shear=aug['shear'], resample=False, fillcolor=0),
             transforms.RandomCrop(size=size, padding=None, pad_if_needed=True, fill=0, padding_mode='constant'),
             transforms.ToTensor()
             ]
-            self.transform = transforms.Compose(trans)
+            self.img_mask_transform = transforms.Compose(transform_lst)
+            #transform_lst = [
+            #    norm_transforms[self.name]               
+            #    transforms.ToPILImage(),
+            #    transforms.ColorJitter(brightness=aug['brightness'], contrast=aug['contrast'], saturation=aug['saturation'], hue=aug['hue']),
+            #    transforms.ToTensor(),
+            #]
+            if self.name in norm_transforms:
+                self.img_transform = norm_transforms[self.name]
         else:
-            self.transform = transforms.Compose(transform_pipelines[self.name][transform])
+            self.img_mask_transform = transforms.Compose(transform_pipelines[self.name][transform])
+            if self.name in norm_transforms:
+                self.img_transform = norm_transforms[self.name]
 
     def __len__(self):
         return len(self.instances)
@@ -121,12 +134,12 @@ class TorchSegmentationDataset(Dataset):
         np.random.seed(seed)
         random.seed(seed)
         torch.manual_seed(seed)
-        img = self.transform(x)
+        img = self.img_mask_transform(x)
 
         np.random.seed(seed)
         random.seed(seed)
         torch.manual_seed(seed)
-        mask = self.transform(y)
+        mask = self.img_mask_transform(y)
 
         #mask = torch.ByteTensor(np.array(mask))
 
@@ -134,7 +147,7 @@ class TorchSegmentationDataset(Dataset):
         mask = mask.float()
 
         # Apply normalization only to image
-        if self.name in norm_transforms:
-            img = norm_transforms[self.name](img)
+        if self.img_transform:
+            img = self.img_transform(img)
 
         return img, mask
